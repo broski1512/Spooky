@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Valentine</title>
+<title>Will You Be My Valentine?</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <style>
@@ -18,54 +18,41 @@ box-sizing:border-box;
 font-family:'Poppins',sans-serif;
 }
 
-/* Background */
-
 body{
 height:100vh;
 display:flex;
 justify-content:center;
 align-items:center;
-background:#f3cfd8;
+background:linear-gradient(135deg,#ffd1dc,#ffe6eb);
 overflow:hidden;
-transition:.6s;
 }
 
-/* Blur after YES */
-
-body.success{
-filter:blur(6px) brightness(.9);
-}
-
-/* Card */
+/* CARD */
 
 .card{
-width:720px;
+width:460px;
 max-width:92%;
-background:#efefef;
-border-radius:40px;
-padding:70px 40px;
+background:white;
+border-radius:28px;
+padding:55px 35px;
 text-align:center;
+box-shadow:0 25px 70px rgba(0,0,0,0.12);
 position:relative;
-z-index:2;
 }
 
-/* Emoji */
+/* EMOJI */
 
 .emoji{
-font-size:80px;
-margin-bottom:20px;
+font-size:70px;
+margin-bottom:15px;
 }
-
-/* Heading */
 
 h1{
-font-size:42px;
-font-weight:700;
-line-height:1.25;
-margin-bottom:60px;
+font-size:28px;
+margin-bottom:45px;
 }
 
-/* Buttons */
+/* BUTTON LAYOUT */
 
 .buttons{
 display:flex;
@@ -73,100 +60,57 @@ justify-content:center;
 align-items:center;
 gap:100px;
 position:relative;
-height:170px;
+height:90px;
 }
 
+/* BUTTON STYLE */
+
 button{
-padding:22px 60px;
-font-size:26px;
-border-radius:60px;
-border:none;
+padding:16px 42px;
+border-radius:999px;
+font-size:18px;
 cursor:pointer;
-transition:.35s;
+transition:.25s;
 }
 
 /* YES */
 
 #yes{
-background:#e24a78;
+background:#e94b78;
 color:white;
-transform-origin:center;
-box-shadow:0 10px 25px rgba(0,0,0,.18);
+border:none;
+box-shadow:0 8px 18px rgba(0,0,0,.15);
+}
+
+#yes:hover{
+transform:scale(1.15);
 }
 
 /* NO */
 
 #no{
-background:#e5e5e5;
-border:2px solid #bdbdbd;
+background:#f3f3f3;
+border:2px solid #d6d6d6;
 position:absolute;
-left:50%;
-transform:translateX(-50%);
 }
 
-/* Note */
+/* TEXT */
 
 .note{
+margin-top:25px;
+font-size:13px;
 color:#777;
-font-size:18px;
-margin-bottom:35px;
 }
 
-/* Share */
-
-.shareLabel{
-font-size:20px;
-margin-bottom:10px;
+.shareBox{
+margin-top:25px;
 }
 
 input{
 width:100%;
-padding:16px;
-border-radius:14px;
-border:2px solid #d1d1d1;
-font-size:16px;
-background:white;
-}
-
-/* Floating hearts */
-
-.heart{
-position:fixed;
-font-size:22px;
-animation:floatUp 4s linear forwards;
-z-index:1;
-}
-
-@keyframes floatUp{
-from{
-transform:translateY(0);
-opacity:1;
-}
-to{
-transform:translateY(-600px);
-opacity:0;
-}
-}
-
-/* Success popup */
-
-.successCard{
-position:fixed;
-top:50%;
-left:50%;
-transform:translate(-50%,-50%) scale(.7);
-background:white;
-padding:80px;
-border-radius:40px;
-text-align:center;
-z-index:5;
-animation:pop .5s forwards;
-}
-
-@keyframes pop{
-to{
-transform:translate(-50%,-50%) scale(1);
-}
+padding:12px;
+border-radius:10px;
+border:1px solid #ddd;
 }
 
 </style>
@@ -176,7 +120,7 @@ transform:translate(-50%,-50%) scale(1);
 
 <div class="card">
 
-<div class="emoji">🐱 💗</div>
+<div class="emoji">🐱💗</div>
 
 <h1 id="title"></h1>
 
@@ -187,14 +131,16 @@ transform:translate(-50%,-50%) scale(1);
 
 <div class="note">“No” seems a bit shy 😉</div>
 
-<div class="shareLabel">Share this link:</div>
+<div class="shareBox">
+<p style="margin-bottom:8px;">Share this link:</p>
 <input id="shareLink" readonly>
+</div>
 
 </div>
 
 <script>
 
-/* PERSONALIZED NAME */
+/* NAME */
 
 const params = new URLSearchParams(window.location.search);
 let name = params.get('name') || "Angela";
@@ -203,55 +149,79 @@ name = name.charAt(0).toUpperCase() + name.slice(1);
 document.getElementById("title").innerText =
 `${name}, will you be my valentine?`;
 
-/* SHARE LINK */
-
 document.getElementById("shareLink").value =
 `${window.location.origin}${window.location.pathname}?name=${encodeURIComponent(name)}`;
 
 
-/* ================================
-   CIRCULAR RUNAWAY BUTTON
-================================ */
+/* =================================
+   CONTROLLED ESCAPE BUTTON
+================================= */
 
 const noBtn = document.getElementById("no");
 const card = document.querySelector(".card");
-const yesBtn = document.getElementById("yes");
 
-let running = false;
-let angle = 0;
-let radius = 90;
-let yesScale = 1;
+let directionIndex = 0;
 
-function animateCircle(){
+/*
+Order:
+0 → LEFT
+1 → UP
+2 → RIGHT
+3 → DOWN
+*/
 
-const cardRect = card.getBoundingClientRect();
+function moveNoButton(){
+
+const stepX = 100;
+const stepY = 50;
+
 const btnRect = noBtn.getBoundingClientRect();
+const cardRect = card.getBoundingClientRect();
 
-const centerX = cardRect.width/2 - btnRect.width/2;
-const centerY = cardRect.height/2 + 20;
+/* Current position relative to card */
 
-angle += 0.06;
-radius += 0.015; // panic expansion
+let left = btnRect.left - cardRect.left;
+let top  = btnRect.top  - cardRect.top;
 
-const x = centerX + radius * Math.cos(angle);
-const y = centerY + radius * Math.sin(angle);
-
-const maxX = cardRect.width - btnRect.width - 20;
-const maxY = cardRect.height - btnRect.height - 20;
-
-noBtn.style.left = Math.max(20, Math.min(x, maxX)) + "px";
-noBtn.style.top  = Math.max(20, Math.min(y, maxY)) + "px";
-
-/* YES grows each chase */
-yesScale += 0.0025;
-yesBtn.style.transform = `scale(${yesScale})`;
-
-requestAnimationFrame(animateCircle);
+if(directionIndex === 0){
+left -= stepX;
+if(left < 20){
+left = 20;
+directionIndex = 1;
+}
 }
 
-document.addEventListener("mousemove",(e)=>{
+else if(directionIndex === 1){
+top -= stepY;
+if(top < 120){
+top = 120;
+directionIndex = 2;
+}
+}
 
-if(running) return;
+else if(directionIndex === 2){
+left += stepX;
+if(left > cardRect.width - btnRect.width - 20){
+left = cardRect.width - btnRect.width - 20;
+directionIndex = 3;
+}
+}
+
+else if(directionIndex === 3){
+top += stepY;
+if(top > 220){
+top = 220;
+directionIndex = 0;
+}
+}
+
+noBtn.style.left = left + "px";
+noBtn.style.top  = top + "px";
+}
+
+/* Cursor detection */
+
+document.addEventListener("mousemove",(e)=>{
 
 const rect = noBtn.getBoundingClientRect();
 
@@ -261,76 +231,33 @@ const centerY = rect.top + rect.height/2;
 const distance = Math.hypot(e.clientX-centerX,e.clientY-centerY);
 
 if(distance < 50){
-running = true;
-animateCircle();
+moveNoButton();
 }
 
 });
 
-/* MOBILE ESCAPE */
+/* MOBILE */
 
 noBtn.addEventListener("touchstart",(e)=>{
 e.preventDefault();
-if(!running){
-running = true;
-animateCircle();
-}
+moveNoButton();
 });
 
 
-/* ================================
-   YES CLICK EXPERIENCE
-================================ */
+/* YES */
 
-yesBtn.onclick = ()=>{
+document.getElementById("yes").onclick = ()=>{
 
-/* Blur background */
-document.body.classList.add("success");
-
-/* Confetti blast */
 confetti({
-particleCount:250,
-spread:160,
+particleCount:220,
+spread:130,
 origin:{y:.6}
 });
 
-/* Side cannons */
-
-const duration = 3500;
-const end = Date.now()+duration;
-
-(function frame(){
-confetti({particleCount:6,angle:60,spread:70,origin:{x:0}});
-confetti({particleCount:6,angle:120,spread:70,origin:{x:1}});
-if(Date.now()<end) requestAnimationFrame(frame);
-})();
-
-/* Floating hearts */
-
-for(let i=0;i<25;i++){
-setTimeout(()=>{
-
-const heart=document.createElement("div");
-heart.className="heart";
-heart.innerHTML="💗";
-heart.style.left=Math.random()*100+"vw";
-heart.style.bottom="-20px";
-
-document.body.appendChild(heart);
-
-},i*120);
-}
-
-/* Success popup */
-
-const popup=document.createElement("div");
-popup.className="successCard";
-popup.innerHTML=`
-<div style="font-size:90px">❤️</div>
+document.querySelector(".card").innerHTML = `
+<div style="font-size:80px">❤️</div>
 <h1>Yay!! ${name} said YES!</h1>
 `;
-
-document.body.appendChild(popup);
 
 };
 
