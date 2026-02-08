@@ -52,9 +52,18 @@ margin-bottom:35px;
 .buttons{
 display:flex;
 justify-content:center;
-gap:30px;
+align-items:center;
+gap:100px;
 position:relative;
-height:60px;
+height:120px;
+}
+
+/* Ensure NO button stays vertically aligned */
+#no{
+background:#eee;
+position:absolute;
+top:50%;
+transform:translateY(-50%);
 }
 
 button{
@@ -73,8 +82,14 @@ background:#ff3b7a;
 color:white;
 }
 
+#yes{
+background:#ff3b7a;
+color:white;
+transform-origin:center;
+}
+
 #yes:hover{
-transform:scale(3);
+transform:scale(2.5);
 }
 
 /* NO */
