@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Will You Be My Valentine?</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Poppins',sans-serif;
+}
+
+body{
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+background:linear-gradient(135deg,#ffd1dc,#ffe6eb);
+overflow:hidden;
+}
+
+.card{
+width:420px;
+max-width:92%;
+background:white;
+border-radius:22px;
+padding:45px 25px;
+text-align:center;
+box-shadow:0 25px 70px rgba(0,0,0,0.15);
+position:relative;
+}
+
+.emoji{
+font-size:70px;
+margin-bottom:10px;
+}
+
+h1{
+font-size:26px;
+margin-bottom:35px;
+}
+
+.buttons{
+display:flex;
+justify-content:center;
+gap:30px;
+position:relative;
+height:60px;
+}
+
+button{
+border:none;
+padding:14px 30px;
+border-radius:999px;
+font-size:16px;
+cursor:pointer;
+transition:.35s;
+}
+
+/* YES */
+
+#yes{
+background:#ff3b7a;
+color:white;
+}
+
+#yes:hover{
+transform:scale(3);
+}
+
+/* NO */
+
+#no{
+background:#eee;
+position:absolute;
+}
+
+.note{
+margin-top:25px;
+font-size:12px;
+color:#777;
+}
+
+.shareBox{
+margin-top:25px;
+display:none;
+}
+
+input{
+width:100%;
+padding:10px;
+border-radius:8px;
+border:1px solid #ddd;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<div class="emoji">🐱💗</div>
+
+<h1 id="title"></h1>
+
+<div class="buttons">
+<button id="yes">Yes</button>
+<button id="no">No</button>
+</div>
+
+<div class="note">“No” seems a bit shy 😏</div>
+
+<div class="shareBox" id="shareBox">
+<p style="margin-bottom:8px;font-size:14px;">
+Share this link:
+</p>
+<input id="shareLink" readonly>
+</div>
+
+</div>
+
+<script>
+
+/* PERSONALIZED NAME */
+
+const params = new URLSearchParams(window.location.search);
+let name = params.get('name') || "Angela";
+
+name = name.charAt(0).toUpperCase() + name.slice(1);
+
+document.getElementById("title").innerText =
+`${name}, will you be my valentine?`;
+
+/* GENERATE SHARE LINK */
+
+const link = `${window.location.origin}${window.location.pathname}?name=${encodeURIComponent(name)}`;
+
+document.getElementById("shareLink").value = link;
+
+/* RUNAWAY NO BUTTON */
+
+const noBtn = document.getElementById("no");
+
+function moveButton(){
+
+const rect = noBtn.getBoundingClientRect();
+
+const maxX = window.innerWidth - rect.width - 20;
+const maxY = window.innerHeight - rect.height - 20;
+
+noBtn.style.left = Math.random()*maxX + "px";
+noBtn.style.top = Math.random()*maxY + "px";
+}
+
+document.addEventListener("mousemove",(e)=>{
+
+const rect = noBtn.getBoundingClientRect();
+
+const centerX = rect.left + rect.width/2;
+const centerY = rect.top + rect.height/2;
+
+const distance = Math.hypot(e.clientX-centerX,e.clientY-centerY);
+
+if(distance < 70){
+moveButton();
+}
+
+});
+
+/* MOBILE TAP AVOID */
+
+noBtn.addEventListener("touchstart",(e)=>{
+e.preventDefault();
+moveButton();
+});
+
+/* YES CLICK */
+
+document.getElementById("yes").onclick = ()=>{
+
+// CONFETTI BURST
+confetti({
+particleCount:200,
+spread:120,
+origin:{y:.6}
+});
+
+// CONTINUOUS SIDE CONFETTI
+const duration = 2500;
+const end = Date.now() + duration;
+
+(function frame() {
+confetti({
+particleCount:5,
+angle:60,
+spread:55,
+origin:{x:0}
+});
+confetti({
+particleCount:5,
+angle:120,
+spread:55,
+origin:{x:1}
+});
+
+if (Date.now() < end) {
+requestAnimationFrame(frame);
+}
+})();
+
+document.querySelector(".card").innerHTML = `
+<div style="font-size:80px">❤️</div>
+<h1>Yay!! ${name} said YES!</h1>
+<p style="margin-top:10px;">Best decision ever.</p>
+`;
+
+};
+
+/* SHOW SHARE BOX AFTER LOAD */
+
+document.getElementById("shareBox").style.display="block";
+
+</script>
+
+</body>
+</html>
